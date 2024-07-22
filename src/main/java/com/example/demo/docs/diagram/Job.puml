@@ -1,0 +1,9 @@
+@startuml
+
+class Job {
+- id: string
+- name: string
+- description: string
+}
+
+@enduml

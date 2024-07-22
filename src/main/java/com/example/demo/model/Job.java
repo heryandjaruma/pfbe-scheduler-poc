@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -25,11 +25,11 @@ public class Job {
   private String id;
   private String name;
   private String description;
-  private CronExpression cronExpression;
+  private String cronExpression;
   private Integer misfire;
 
   private String endpoint;
   private Map<String, String> headers;
-  private HttpMethod method;
+  private String httpMethod;
   private String body;
 }
