@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.controller;
 
 import com.example.demo.model.Job;
 import com.example.demo.repository.JobRepository;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-public class Controller {
+public class JobController {
 
   @Autowired
   private JobRepository jobRepository;
@@ -29,10 +29,5 @@ public class Controller {
             .httpMethod(webRequest.getHttpMethod())
             .body(webRequest.getBody())
         .build());
-  }
-
-  @GetMapping("/hello")
-  public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-    return String.format("Hello %s!", name);
   }
 }
