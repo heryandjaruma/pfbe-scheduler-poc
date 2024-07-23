@@ -38,4 +38,11 @@ public class Job {
   private Map<String, String> headers;
   private String httpMethod;
   private String body;
+
+  public enum Status {
+    SCHEDULED,
+    STARTED,
+    COMPLETED,
+    FAILED;
+  }
 }

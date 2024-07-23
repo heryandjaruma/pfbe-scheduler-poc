@@ -2,8 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.exception.DataNotFoundException;
 import com.example.demo.model.Job;
+import com.example.demo.model.Run;
 import com.example.demo.repository.JobRepository;
+import com.example.demo.repository.RunRepository;
 import com.example.demo.web.SaveJobWebRequest;
+import com.example.demo.worker.SchedulerWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(JobController.PATH)
@@ -27,6 +33,10 @@ public class JobController {
 
   @Autowired
   private JobRepository jobRepository;
+
+  @Autowired
+  private RunRepository runRepository;
+
 
   @PostMapping
   @ResponseStatus(HttpStatus.OK)
@@ -70,5 +80,21 @@ public class JobController {
         .flatMap(job -> jobRepository.save(job))
         .doOnError(ex -> log.error("Could not find Job with id {}", id, ex))
         .doOnSuccess(res -> log.info("Successfully update Job {}", res));
+  }
+
+  @GetMapping("/TestSchedule")
+  public Boolean testSchedule() {
+    List<Job> jobs = jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis());
+
+    Mono.just(jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis()))
+        .flatMapMany(Flux::fromIterable)
+        .map(job -> Run.builder()
+            .jobId(job.getId())
+            .status("SCHEDULED")
+            .scheduledToRunAt(SchedulerWorker.getNextRunSchedule(job.getCronExpression()))
+            .build())
+        .flatMap(run -> runRepository.save(run)).subscribe();
+
+    return Boolean.TRUE;
   }
 }
