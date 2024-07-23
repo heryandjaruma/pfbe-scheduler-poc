@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.http.HttpMethod;
-import org.springframework.scheduling.support.CronExpression;
 
 import java.util.Map;
 
