@@ -26,7 +26,7 @@ public class Run {
   private String jobId;
   private String status;
 
-  private String scheduleAt;
+  private Long scheduledToRunAt;
   private Long startedAt;
   private Long expiredAt;
   private Long completedAt;
