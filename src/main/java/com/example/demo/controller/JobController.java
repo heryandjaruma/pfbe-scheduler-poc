@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -84,10 +83,10 @@ public class JobController {
 
   @GetMapping("/ManualSetNextSchedule")
   public Boolean manualSetNextSchedule() {
-    jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis())
+    jobRepository.findByLastRunAtAndLastScheduledAtLessThanEqualCurrentTimeMillisOrNull(System.currentTimeMillis())
         .map(job -> Run.builder()
             .jobId(job.getId())
-            .status(Job.Status.SCHEDULED.name())
+            .status(Run.Status.SCHEDULED.name())
             .scheduledToRunAt(SchedulerWorker.getNextRunSchedule(job.getCronExpression()))
             .build())
         .flatMap(run -> runRepository.save(run)).subscribe();

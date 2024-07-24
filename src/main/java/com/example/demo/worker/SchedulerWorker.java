@@ -35,32 +35,48 @@ public class SchedulerWorker {
     // 3. if save failed, cancel execution (it means other pod has already taking care of it)
     // 5. if save success, then create a new Run and save it to database
 
-    jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis())
+    jobRepository.findByLastRunAtAndLastScheduledAtLessThanEqualCurrentTimeMillisOrNull(System.currentTimeMillis())
         .map(job -> job.toBuilder()
             .lastScheduledAt(System.currentTimeMillis())
             .build())
         .flatMap(job -> jobRepository.save(job))
-        .onErrorContinue((err, obj) -> log.error("Error when processing Job {}", obj, err))
-        .map(job -> Run.builder()
-            .jobId(job.getId())
-            .status(Job.Status.SCHEDULED.name())
-            .scheduledToRunAt(getNextRunSchedule(job.getCronExpression()))
+        .onErrorContinue((err, run) -> log.error("Error when processing Job {}", run, err))
+        .map(run -> Run.builder()
+            .jobId(run.getId())
+            .status(Run.Status.SCHEDULED.name())
+            .scheduledToRunAt(getNextRunSchedule(run.getCronExpression()))
             .build())
         .flatMap(run -> runRepository.save(run))
         .doOnNext(run -> log.info("Next Run for Job ID {} has been scheduled", run.getJobId()))
         .subscribe();
   }
 
-//  @Scheduled(cron = "* * * * * *")
+  @Scheduled(cron = "0 * * * * *")
   public void readyToRun() {
-    // makes all scheduled runs to RUN
+    // check scheduled runs every minute and make it RUN
     //
     // STEPS
     // 1. get all runs where the scheduledToRunAt is less than time.now and startedAt is null
     // 2. update its startedAt and save to database
     // 3. if save failed, cancel execution (it means other pod has already taking care of it)
     // 4. if save success, then execute (fire and forget)
-    // 5. at the end, update its job's lastRunAt
+    // 5. at the end, update its job's lastRunAt and lastRunId
+
+    runRepository.findByScheduledToRunAtLessThanEqualCurrentTimeMillisOrStartedAtIsNull(System.currentTimeMillis())
+        .map(run -> run.toBuilder()
+            .startedAt(System.currentTimeMillis())
+            .build())
+        .flatMap(run -> runRepository.save(run))
+        .onErrorContinue((err, job) -> log.error("Error when processing Run {}", job, err))
+        .doOnNext(job -> log.info("Job {} run!", job))
+        .map(run -> run.toBuilder()
+            .completedAt(System.currentTimeMillis())
+            .status(Run.Status.COMPLETED.name())
+            .build())
+        .flatMap(run -> runRepository.save(run))
+        .flatMap(run -> jobRepository.findById(run.getJobId()))
+//        .doOnNext(run -> log.info("Run ID {} has completed at {}", run.getId(), run.getCompletedAt()))
+        .subscribe();
   }
 
   public static Long getNextRunSchedule(String cronExpression) {

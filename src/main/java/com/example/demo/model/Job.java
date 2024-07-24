@@ -39,10 +39,4 @@ public class Job {
   private String httpMethod;
   private String body;
 
-  public enum Status {
-    SCHEDULED,
-    STARTED,
-    COMPLETED,
-    FAILED;
-  }
 }

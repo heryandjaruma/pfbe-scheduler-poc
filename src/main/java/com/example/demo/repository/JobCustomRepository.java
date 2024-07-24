@@ -5,6 +5,6 @@ import reactor.core.publisher.Flux;
 
 public interface JobCustomRepository {
 
-  Flux<Job> findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(Long currentTimeMillis);
+  Flux<Job> findByLastRunAtAndLastScheduledAtLessThanEqualCurrentTimeMillisOrNull(Long currentTimeMillis);
 
 }

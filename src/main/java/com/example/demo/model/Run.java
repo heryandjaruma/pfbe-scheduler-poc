@@ -30,4 +30,11 @@ public class Run {
   private Long startedAt;
   private Long expiredAt;
   private Long completedAt;
+
+  public enum Status {
+    SCHEDULED,
+    STARTED,
+    COMPLETED,
+    FAILED;
+  }
 }
