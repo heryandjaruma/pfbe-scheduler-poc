@@ -7,6 +7,7 @@ import com.example.demo.repository.RunRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.ParseException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -25,7 +26,7 @@ public class SchedulerWorker {
   @Autowired
   private RunRepository runRepository;
 
-//  @Scheduled(cron = "* * * * * *")
+  @Scheduled(cron = "* * * * * *")
   public void readyToSchedule() {
     // check a job to be scheduled by creating its next run
     //

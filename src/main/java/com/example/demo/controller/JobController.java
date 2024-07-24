@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @RestController
 @RequestMapping(JobController.PATH)
 @Slf4j
@@ -50,7 +48,9 @@ public class JobController {
             .headers(webRequest.getHeaders())
             .httpMethod(webRequest.getHttpMethod())
             .body(webRequest.getBody())
-        .build());
+        .build())
+        .doOnError(ex -> log.error("Failed to save Job {}", webRequest.getName(), ex))
+        .doOnSuccess(res -> log.info("Successfully save Job {}", res));
   }
 
   @GetMapping(ID)
@@ -82,10 +82,8 @@ public class JobController {
         .doOnSuccess(res -> log.info("Successfully update Job {}", res));
   }
 
-  @GetMapping("/TestSchedule")
-  public Boolean testSchedule() {
-    List<Job> jobs = jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis());
-
+  @GetMapping("/ManualSetNextSchedule")
+  public Boolean manualSetNextSchedule() {
     Mono.just(jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis()))
         .flatMapMany(Flux::fromIterable)
         .map(job -> Run.builder()

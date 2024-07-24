@@ -40,7 +40,9 @@ public class RunController {
         .startedAt(webRequest.getStartedAt())
         .expiredAt(webRequest.getExpiredAt())
         .completedAt(webRequest.getCompletedAt())
-        .build());
+        .build())
+        .doOnError(ex -> log.error("Failed to save Run for Job ID {}", webRequest.getJobId(), ex))
+        .doOnSuccess(res -> log.info("Successfully save Run {}", res));
   }
 
   @GetMapping(ID)
