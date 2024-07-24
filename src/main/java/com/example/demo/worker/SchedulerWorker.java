@@ -5,15 +5,15 @@ import com.example.demo.model.Run;
 import com.example.demo.repository.JobRepository;
 import com.example.demo.repository.RunRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.expression.ParseException;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @Component
@@ -58,11 +58,14 @@ public class SchedulerWorker {
 
   public static Long getNextRunSchedule(String cronExpression) {
     try {
-      CronExpression cron = new CronExpression(cronExpression);
-      Date now = new Date();
-      return cron.getNextValidTimeAfter(now).getTime();
+      CronExpression cronTrigger = CronExpression.parse(cronExpression);
+      return toEpochFromDateTime(cronTrigger.next(LocalDateTime.now()));
     } catch (ParseException e) {
-      throw new RuntimeException("Invalid cron expression: " + e.getMessage(), e);
+      throw new RuntimeException("Error when parsing Cron Expression: " + e.getMessage(), e);
     }
+  }
+
+  public static long toEpochFromDateTime(LocalDateTime date) {
+    return date.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
   }
 }
