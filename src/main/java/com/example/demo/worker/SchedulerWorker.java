@@ -35,7 +35,7 @@ public class SchedulerWorker {
     // 3. if save failed, log (it means other pod has already taking care of it)
     // 4. if save success, then execute
     // 5. then create a new run
-    log.info("ReadyToRun worker is fired.");
+    log.info("ReadyToRun worker is fired");
 
     runRepository.findByScheduledToRunAtLessThanEqualCurrentTimeMillisAndStatusIsScheduled(System.currentTimeMillis())
         .map(run -> run.toBuilder()

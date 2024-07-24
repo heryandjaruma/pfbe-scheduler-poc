@@ -1,0 +1,20 @@
+@startuml
+title
+    Save Job activity diagram
+endtitle
+
+start
+:POST /job;
+:Save new Job to database;
+partition "**process** scheduleNextRun" {
+    :create new Run;
+    :set status to SCHEDULED;
+    partition "**process** getNextRunSchedule" {
+        :parse cron to CronExpression;
+        :calculate nextRun with cron.next(LocalDateTime.now);
+    }
+    :set scheduledToRunAt;
+    :save to DB;
+}
+stop
+@enduml

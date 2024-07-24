@@ -1,0 +1,12 @@
+@startuml
+
+class Run {
+- id: string
+- v: integer
+- jobId: string
+- status: string
+- scheduledToRunAt: long
+- completedAt: long
+}
+
+@enduml

@@ -4,6 +4,11 @@ class Job {
 - id: string
 - name: string
 - description: string
+- cronExpression: string
+- endpoint: string
+- headers: map<string,string>
+- httpMethod: string
+- body: string
 }
 
 @enduml

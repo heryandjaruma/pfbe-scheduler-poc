@@ -1,0 +1,28 @@
+@startuml
+title
+    Scheduler Worker activity diagram
+endtitle
+
+start
+:get Run where scheduledToRunAt is LTE current time AND
+where status is SCHEDULED;
+:change status to STARTED;
+if (Optimistic lock exception?) is (yes) then
+    :skip the Run;
+    end
+else (no)
+    :Start the Run;
+endif
+:change status to FINISHED and completedAt;
+partition "**process** scheduleNextRun" {
+    :create new Run;
+    :set status to SCHEDULED;
+    partition "**process** getNextRunSchedule" {
+        :parse cron to CronExpression;
+        :calculate nextRun with cron.next(LocalDateTime.now);
+    }
+    :set scheduledToRunAt;
+    :save to DB;
+}
+end
+@enduml
