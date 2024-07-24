@@ -1,11 +1,10 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Job;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 public interface JobCustomRepository {
 
-  List<Job> findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(Long currentTimeMillis);
+  Flux<Job> findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(Long currentTimeMillis);
 
 }

@@ -10,8 +10,6 @@ import org.springframework.expression.ParseException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -26,23 +24,31 @@ public class SchedulerWorker {
   @Autowired
   private RunRepository runRepository;
 
-  @Scheduled(cron = "* * * * * *")
+  @Scheduled(cron = "0 * * * * *")
   public void readyToSchedule() {
-    // check a job to be scheduled by creating its next run
+    log.info("readyToSchedule is fired.");
+    // check available jobs every minute and scheduling its next Run
     //
     // STEPS
     // 1. get all jobs where the lastRunAt AND lastScheduledAt are less than time.now OR null
-    // 2. create a new Run and save it to database
-    // 3. update lastScheduledAt and save it to database
+    // 2. update lastScheduledAt and save it to database
+    // 3. if save failed, cancel execution (it means other pod has already taking care of it)
+    // 5. if save success, then create a new Run and save it to database
 
-    Mono.just(jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis()))
-        .flatMapMany(Flux::fromIterable)
+    jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis())
+        .map(job -> job.toBuilder()
+            .lastScheduledAt(System.currentTimeMillis())
+            .build())
+        .flatMap(job -> jobRepository.save(job))
+        .onErrorContinue((err, obj) -> log.error("Error when processing Job {}", obj, err))
         .map(job -> Run.builder()
             .jobId(job.getId())
             .status(Job.Status.SCHEDULED.name())
             .scheduledToRunAt(getNextRunSchedule(job.getCronExpression()))
             .build())
-        .flatMap(run -> runRepository.save(run));
+        .flatMap(run -> runRepository.save(run))
+        .doOnNext(run -> log.info("Next Run for Job ID {} has been scheduled", run.getJobId()))
+        .subscribe();
   }
 
 //  @Scheduled(cron = "* * * * * *")
@@ -50,7 +56,7 @@ public class SchedulerWorker {
     // makes all scheduled runs to RUN
     //
     // STEPS
-    // 1. get all runs where the scheduledToRunAt is less than time.now
+    // 1. get all runs where the scheduledToRunAt is less than time.now and startedAt is null
     // 2. update its startedAt and save to database
     // 3. if save failed, cancel execution (it means other pod has already taking care of it)
     // 4. if save success, then execute (fire and forget)

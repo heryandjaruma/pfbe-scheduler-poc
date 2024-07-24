@@ -84,11 +84,10 @@ public class JobController {
 
   @GetMapping("/ManualSetNextSchedule")
   public Boolean manualSetNextSchedule() {
-    Mono.just(jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis()))
-        .flatMapMany(Flux::fromIterable)
+    jobRepository.findByLastRunAtAndLastScheduledAtLessThanCurrentTimeMillisOrNull(System.currentTimeMillis())
         .map(job -> Run.builder()
             .jobId(job.getId())
-            .status("SCHEDULED")
+            .status(Job.Status.SCHEDULED.name())
             .scheduledToRunAt(SchedulerWorker.getNextRunSchedule(job.getCronExpression()))
             .build())
         .flatMap(run -> runRepository.save(run)).subscribe();
