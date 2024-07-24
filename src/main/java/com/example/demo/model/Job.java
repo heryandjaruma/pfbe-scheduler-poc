@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Map;
@@ -22,17 +21,10 @@ public class Job {
 
   @Id
   private String id;
-  @Version
-  private Integer v;
 
   private String name;
   private String description;
   private String cronExpression;
-  private Integer misfire;
-
-  private String lastRunId;
-  private Long lastRunAt;
-  private Long lastScheduledAt;
 
   private String endpoint;
   private Map<String, String> headers;

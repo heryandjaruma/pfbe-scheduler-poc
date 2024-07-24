@@ -15,8 +15,6 @@ public class SaveRunWebRequest {
   private String jobId;
   private String status;
 
-  private Long scheduleAt;
-  private Long startedAt;
-  private Long expiredAt;
+  private Long scheduledToRunAt;
   private Long completedAt;
 }

@@ -18,7 +18,6 @@ public class SaveJobWebRequest {
   private String name;
   private String description;
   private String cronExpression;
-  private Integer misfire;
 
   private String endpoint;
   private Map<String, String> headers;

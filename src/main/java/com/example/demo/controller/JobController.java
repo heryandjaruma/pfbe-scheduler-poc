@@ -34,6 +34,9 @@ public class JobController {
   @Autowired
   private RunRepository runRepository;
 
+  @Autowired
+  private SchedulerWorker schedulerWorker;
+
 
   @PostMapping
   @ResponseStatus(HttpStatus.OK)
@@ -42,14 +45,15 @@ public class JobController {
             .name(webRequest.getName())
             .description(webRequest.getDescription())
             .cronExpression(webRequest.getCronExpression())
-            .misfire(webRequest.getMisfire())
             .endpoint(webRequest.getEndpoint())
             .headers(webRequest.getHeaders())
             .httpMethod(webRequest.getHttpMethod())
             .body(webRequest.getBody())
         .build())
         .doOnError(ex -> log.error("Failed to save Job {}", webRequest.getName(), ex))
-        .doOnSuccess(res -> log.info("Successfully save Job {}", res));
+        .doOnSuccess(res -> log.info("Successfully save Job {}", res))
+        .flatMap(job -> schedulerWorker.scheduleNextRun(job))
+        .flatMap(run -> jobRepository.findById(run.getJobId()));
   }
 
   @GetMapping(ID)
@@ -69,8 +73,7 @@ public class JobController {
         .map(job -> job.toBuilder()
             .name(webRequest.getName())
             .description(webRequest.getDescription())
-                . cronExpression(webRequest.getCronExpression())
-                .misfire(webRequest.getMisfire())
+                .cronExpression(webRequest.getCronExpression())
                 .endpoint(webRequest.getEndpoint())
                 .headers(webRequest.getHeaders())
                 .httpMethod(webRequest.getHttpMethod())
@@ -90,7 +93,6 @@ public class JobController {
             .scheduledToRunAt(SchedulerWorker.getNextRunSchedule(job.getCronExpression()))
             .build())
         .flatMap(run -> runRepository.save(run)).subscribe();
-
     return Boolean.TRUE;
   }
 }

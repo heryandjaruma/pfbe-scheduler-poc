@@ -27,14 +27,12 @@ public class Run {
   private String status;
 
   private Long scheduledToRunAt;
-  private Long startedAt;
-  private Long expiredAt;
   private Long completedAt;
 
   public enum Status {
     SCHEDULED,
     STARTED,
-    COMPLETED,
+    FINISHED,
     FAILED;
   }
 }

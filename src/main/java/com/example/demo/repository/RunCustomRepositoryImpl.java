@@ -17,10 +17,10 @@ public class RunCustomRepositoryImpl implements RunCustomRepository {
   private ReactiveMongoTemplate reactiveMongoTemplate;
 
   @Override
-  public Flux<Run> findByScheduledToRunAtLessThanEqualCurrentTimeMillisOrStartedAtIsNull(Long currentTimeMillis) {
-    Criteria criteriaLessThan = Criteria.where("scheduledToRunAt").lte(currentTimeMillis);
-    Criteria criteriaIsNull = Criteria.where("startedAt").isNull();
-    Query query = new Query(new Criteria().andOperator(criteriaLessThan, criteriaIsNull));
+  public Flux<Run> findByScheduledToRunAtLessThanEqualCurrentTimeMillisAndStatusIsScheduled(Long currentTimeMillis) {
+    Criteria criteriaLessThanEqual = Criteria.where("scheduledToRunAt").lte(currentTimeMillis);
+    Criteria criteriaIsScheduled = Criteria.where("status").is(Run.Status.SCHEDULED.name());
+    Query query = new Query(new Criteria().andOperator(criteriaLessThanEqual, criteriaIsScheduled));
     log.debug("Query: {}", query);
     return reactiveMongoTemplate.find(query, Run.class);
   }
