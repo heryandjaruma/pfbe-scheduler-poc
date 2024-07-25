@@ -8,7 +8,7 @@ The PFBE scheduler provides a high level of flexibility for job scheduling, incl
 
 ## Class Diagram
 The scheduler have only 2 classes. Class `Job` describes the job itself, and `Run`
-to describe a run which will be or have been. A Job will have multiple Runs saved in database.
+to describe a run. A Job will have multiple `Run` objects saved in the database.
 
 - Class Job
 
@@ -18,14 +18,14 @@ to describe a run which will be or have been. A Job will have multiple Runs save
 ![Class Run](./diagram/Run.png)
 
 
-## Scheduler Flow
+## How It Works
 On its core, the app works by scanning all runs every minute in the database. Only eligible run 
-objects will be queried and run by `SchedulerWorker`, that is when `Run.scheduledToRunAt` is less 
-than current time AND `run.Status` is `SCHEDULED`. This way, it's possible to tackle a multi-pod 
+objects will be queried and started by `SchedulerWorker`, that is when `Run.scheduledToRunAt` is less 
+than current time AND `Run.status` is `SCHEDULED`. This way, it's possible to tackle a multi-pod 
 environment problem where it's almost always guaranteed a pod only executes a run once. 
 
 - Save Job Flow
-    
+
 When a new job is added, it will immediately schedule for the next run.
 
 ![Save Job Flow](./diagram/SaveJob.png)

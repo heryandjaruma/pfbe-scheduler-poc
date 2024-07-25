@@ -27,16 +27,9 @@ public class SchedulerWorker {
 
   @Scheduled(cron = "0 * * * * *")
   public void readyToRun() {
-    // check scheduled runs every minute and make it RUN
-    //
-    // STEPS
-    // 1. get all runs where the scheduledToRunAt is less than time.now and status is SCHEDULED
-    // 2. update its startedAt and save to database
-    // 3. if save failed, log (it means other pod has already taking care of it)
-    // 4. if save success, then execute
-    // 5. then create a new run
     log.info("ReadyToRun worker is fired");
 
+    // start processing all ready runs
     runRepository.findByScheduledToRunAtLessThanEqualCurrentTimeMillisAndStatusIsScheduled(System.currentTimeMillis())
         .map(run -> run.toBuilder()
             .status(Run.Status.STARTED.name())
