@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+
+import java.util.Random;
 
 @RestController
 @RequestMapping(JobController.PATH)
@@ -94,5 +97,35 @@ public class JobController {
             .build())
         .flatMap(run -> runRepository.save(run)).subscribe();
     return Boolean.TRUE;
+  }
+
+  @GetMapping("/create-random-jobs")
+  public Boolean createRandomJobs(@RequestParam Integer amount) {
+    for (int i = 0; i < amount; i++) {
+      jobRepository.save(Job.builder()
+          .name(generateRandomString())
+          .description(generateRandomString())
+          .cronExpression("0 * * * * *")
+          .endpoint(generateRandomString())
+          .httpMethod("POST")
+          .build())
+          .flatMap(job -> schedulerWorker.scheduleNextRun(job))
+          .subscribe();
+    }
+    log.info("Done creating {} jobs", amount);
+    return Boolean.TRUE;
+  }
+
+  public static String generateRandomString() {
+    String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    StringBuilder randomString = new StringBuilder(12);
+    Random random = new Random();
+
+    for (int i = 0; i < 12; i++) {
+      int index = random.nextInt(characters.length());
+      randomString.append(characters.charAt(index));
+    }
+
+    return randomString.toString();
   }
 }
