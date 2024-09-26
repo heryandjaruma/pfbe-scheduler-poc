@@ -4,7 +4,6 @@ import com.example.demo.exception.DataNotFoundException;
 import com.example.demo.model.Job;
 import com.example.demo.model.Run;
 import com.example.demo.repository.RunRepository;
-import com.example.demo.web.SaveJobWebRequest;
 import com.example.demo.web.SaveRunWebRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +33,11 @@ public class RunController {
   @ResponseStatus(HttpStatus.OK)
   public Mono<Run> saveRun(@RequestBody SaveRunWebRequest webRequest) {
     return runRepository.save(Run.builder()
-        .jobId(webRequest.getJobId())
-        .status(webRequest.getStatus())
-        .scheduledToRunAt(webRequest.getScheduledToRunAt())
-        .completedAt(webRequest.getCompletedAt())
-        .build())
+            .jobId(webRequest.getJobId())
+            .status(webRequest.getStatus())
+            .scheduledToRunAt(webRequest.getScheduledToRunAt())
+            .completedAt(webRequest.getCompletedAt())
+            .build())
         .doOnError(ex -> log.error("Failed to save Run for Job ID {}", webRequest.getJobId(), ex))
         .doOnSuccess(res -> log.info("Successfully save Run {}", res));
   }
@@ -47,7 +46,8 @@ public class RunController {
   @ResponseStatus(HttpStatus.OK)
   public Mono<Run> get(@PathVariable String id) {
     return runRepository.findById(id)
-        .switchIfEmpty(Mono.error(new DataNotFoundException(Run.class.getName(), HttpStatus.NOT_FOUND.toString())))
+        .switchIfEmpty(Mono.error(new DataNotFoundException(Run.class.getName(),
+            HttpStatus.NOT_FOUND.toString())))
         .doOnError(ex -> log.error("Could not find Run with id {}", id, ex))
         .doOnSuccess(res -> log.info("Successfully find Run {}", res));
   }
@@ -56,7 +56,8 @@ public class RunController {
   @ResponseStatus(HttpStatus.OK)
   public Mono<Run> update(@PathVariable String id, @RequestBody SaveRunWebRequest webRequest) {
     return runRepository.findById(id)
-        .switchIfEmpty(Mono.error(new DataNotFoundException(Job.class.getName(), HttpStatus.NOT_FOUND.toString())))
+        .switchIfEmpty(Mono.error(new DataNotFoundException(Job.class.getName(),
+            HttpStatus.NOT_FOUND.toString())))
         .map(run -> run.toBuilder()
             .jobId(webRequest.getJobId())
             .status(webRequest.getStatus())

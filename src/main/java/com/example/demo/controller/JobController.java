@@ -52,7 +52,7 @@ public class JobController {
             .headers(webRequest.getHeaders())
             .httpMethod(webRequest.getHttpMethod())
             .body(webRequest.getBody())
-        .build())
+            .build())
         .doOnError(ex -> log.error("Failed to save Job {}", webRequest.getName(), ex))
         .doOnSuccess(res -> log.info("Successfully save Job {}", res))
         .flatMap(job -> schedulerWorker.scheduleNextRun(job))
@@ -63,7 +63,8 @@ public class JobController {
   @ResponseStatus(HttpStatus.OK)
   public Mono<Job> get(@PathVariable String id) {
     return jobRepository.findById(id)
-        .switchIfEmpty(Mono.error(new DataNotFoundException(Job.class.getName(), HttpStatus.NOT_FOUND.toString())))
+        .switchIfEmpty(Mono.error(new DataNotFoundException(Job.class.getName(),
+            HttpStatus.NOT_FOUND.toString())))
         .doOnError(ex -> log.error("Could not find Job with id {}", id, ex))
         .doOnSuccess(res -> log.info("Successfully find Job {}", res));
   }
@@ -72,16 +73,17 @@ public class JobController {
   @ResponseStatus(HttpStatus.OK)
   public Mono<Job> update(@PathVariable String id, @RequestBody SaveJobWebRequest webRequest) {
     return jobRepository.findById(id)
-        .switchIfEmpty(Mono.error(new DataNotFoundException(Job.class.getName(), HttpStatus.NOT_FOUND.toString())))
+        .switchIfEmpty(Mono.error(new DataNotFoundException(Job.class.getName(),
+            HttpStatus.NOT_FOUND.toString())))
         .map(job -> job.toBuilder()
             .name(webRequest.getName())
             .description(webRequest.getDescription())
-                .cronExpression(webRequest.getCronExpression())
-                .endpoint(webRequest.getEndpoint())
-                .headers(webRequest.getHeaders())
-                .httpMethod(webRequest.getHttpMethod())
-                .body(webRequest.getBody())
-                .build())
+            .cronExpression(webRequest.getCronExpression())
+            .endpoint(webRequest.getEndpoint())
+            .headers(webRequest.getHeaders())
+            .httpMethod(webRequest.getHttpMethod())
+            .body(webRequest.getBody())
+            .build())
         .flatMap(job -> jobRepository.save(job))
         .doOnError(ex -> log.error("Could not find Job with id {}", id, ex))
         .doOnSuccess(res -> log.info("Successfully update Job {}", res));
@@ -95,7 +97,8 @@ public class JobController {
             .status(Run.Status.SCHEDULED.name())
             .scheduledToRunAt(SchedulerWorker.getNextRunSchedule(job.getCronExpression()))
             .build())
-        .flatMap(run -> runRepository.save(run)).subscribe();
+        .flatMap(run -> runRepository.save(run))
+        .subscribe();
     return Boolean.TRUE;
   }
 
@@ -108,9 +111,7 @@ public class JobController {
           .cronExpression("0 * * * * *")
           .endpoint(generateRandomString())
           .httpMethod("POST")
-          .build())
-          .flatMap(job -> schedulerWorker.scheduleNextRun(job))
-          .subscribe();
+          .build()).flatMap(job -> schedulerWorker.scheduleNextRun(job)).subscribe();
     }
     log.info("Done creating {} jobs", amount);
     return Boolean.TRUE;
