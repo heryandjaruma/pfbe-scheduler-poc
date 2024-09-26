@@ -6,7 +6,7 @@ import com.example.demo.model.Run;
 import com.example.demo.repository.JobRepository;
 import com.example.demo.repository.RunRepository;
 import com.example.demo.web.SaveJobWebRequest;
-import com.example.demo.worker.SchedulerWorker;
+import com.example.demo.daemon.DaemonWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +38,7 @@ public class JobController {
   private RunRepository runRepository;
 
   @Autowired
-  private SchedulerWorker schedulerWorker;
+  private DaemonWorker daemonWorker;
 
 
   @PostMapping
@@ -55,7 +55,7 @@ public class JobController {
             .build())
         .doOnError(ex -> log.error("Failed to save Job {}", webRequest.getName(), ex))
         .doOnSuccess(res -> log.info("Successfully save Job {}", res))
-        .flatMap(job -> schedulerWorker.scheduleNextRun(job))
+        .flatMap(job -> daemonWorker.scheduleNextRun(job))
         .flatMap(run -> jobRepository.findById(run.getJobId()));
   }
 
@@ -95,7 +95,7 @@ public class JobController {
         .map(job -> Run.builder()
             .jobId(job.getId())
             .status(Run.Status.SCHEDULED.name())
-            .scheduledToRunAt(SchedulerWorker.getNextRunSchedule(job.getCronExpression()))
+            .scheduledToRunAt(DaemonWorker.getNextRunSchedule(job.getCronExpression()))
             .build())
         .flatMap(run -> runRepository.save(run))
         .subscribe();
@@ -111,7 +111,7 @@ public class JobController {
           .cronExpression("0 * * * * *")
           .endpoint(generateRandomString())
           .httpMethod("POST")
-          .build()).flatMap(job -> schedulerWorker.scheduleNextRun(job)).subscribe();
+          .build()).flatMap(job -> daemonWorker.scheduleNextRun(job)).subscribe();
     }
     log.info("Done creating {} jobs", amount);
     return Boolean.TRUE;

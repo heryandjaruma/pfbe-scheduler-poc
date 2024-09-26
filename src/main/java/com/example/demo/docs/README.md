@@ -20,7 +20,7 @@ to describe a run. A Job will have multiple `Run` objects saved in the database.
 
 ## How It Works
 On its core, the app works by scanning all runs every minute in the database. Only eligible run 
-objects will be queried and started by `SchedulerWorker`, that is when `Run.scheduledToRunAt` is less 
+objects will be queried and started by `DaemonWorker`, that is when `Run.scheduledToRunAt` is less 
 than current time AND `Run.status` is `SCHEDULED`. This way, it's possible to tackle a multi-pod 
 environment problem where it's almost always guaranteed a pod only executes a run once. 
 
@@ -30,8 +30,8 @@ When a new job is added, it will immediately schedule for the next run.
 
 ![Save Job Flow](./diagram/SaveJob.png)
 
-- Scheduler Worker Flow
+- Daemon Worker Flow
 
 The retrieval and processing of the `Run` objects is done reactively using flux.
 
-![Scheduler Worker Flow](./diagram/SchedulerWorker.png)
+![Daemon Worker Flow](./diagram/DaemonWorker.png)
